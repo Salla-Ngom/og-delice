@@ -9,9 +9,9 @@
 <body class="bg-gray-50 text-gray-800">
 
     {{-- NAVBAR --}}
-    @include('menusPage.navBar')
+    @include('menusPage.navBarClient')
 
-    {{-- HERO SECTION PRO --}}
+ {{-- HERO SECTION PRO --}}
     <section class="bg-gradient-to-r from-orange-500 to-red-600 text-white pt-32">
         <div class="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -100,6 +100,12 @@
                                         <span class="font-bold text-orange-600">
                                             {{ number_format($product->price, 0, ',', ' ') }} FCFA
                                         </span>
+                                        <form action="{{ route('cart.add', $product->id) }}" method="POST">
+    @csrf
+    <button class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
+        Ajouter
+    </button>
+</form>
 
                                     </div>
                                 </div>
@@ -118,12 +124,34 @@
         <a href="#" class="bg-orange-500 px-8 py-4 rounded-xl font-semibold hover:bg-orange-600 transition">
             Réserver un traiteur
         </a>
-    </section>
-
+   </section>
     {{-- FOOTER --}}
     <footer class="bg-gray-800 text-gray-300 py-6 text-center">
         <p>© {{ date('Y') }} O'G Délice. Tous droits réservés.</p>
     </footer>
+
+    <script>
+    const navbar = document.getElementById('navbar');
+    const navTexts = document.querySelectorAll('.nav-text');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 50) {
+            navbar.classList.remove('bg-transparent');
+            navbar.classList.add('bg-white', 'shadow');
+
+            navTexts.forEach(el => el.classList.replace('text-white', 'text-gray-800'));
+            navLinks.forEach(el => el.classList.add('text-gray-800'));
+        } else {
+            navbar.classList.add('bg-transparent');
+            navbar.classList.remove('bg-white', 'shadow');
+
+            navTexts.forEach(el => el.classList.replace('text-gray-800', 'text-white'));
+            navLinks.forEach(el => el.classList.remove('text-gray-800'));
+        }
+    });
+</script>
+
 
 </body>
 </html>

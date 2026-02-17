@@ -9,8 +9,13 @@ use App\Http\Controllers\{
     OrderController,
     CateringRequestController
 };
+use App\Http\Controllers\Client\DashboardClientController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/client/dashboard', [DashboardClientController::class, 'index'])->name('client.dashboard');
+Route::get('/client/orders')->name('client.orders');
+Route::get('/cart')->name('cart.index');
+
 
 Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
