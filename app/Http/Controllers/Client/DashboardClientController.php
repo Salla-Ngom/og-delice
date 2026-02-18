@@ -12,20 +12,24 @@ use App\Models\Category;
 
 class DashboardClientController extends Controller
 {
-    public function index()
+
+public function index()
 {
     $user = auth()->user();
-
-          $categories = Category::with(['products' => function ($query) {
-        $query->where('is_active', true);
-    }])->get();
 
     $orders = $user->orders()
                    ->with('items')
                    ->latest()
+                   ->take(5)
                    ->get();
 
-    return view('client.clientPage', compact('user', 'orders', 'categories'));
+    $stats = [
+        'total_orders'   => $user->orders()->count(),
+        'pending_orders' => $user->orders()->where('status', 'pending')->count(),
+        'total_spent'    => $user->orders()->where('status', 'completed')->sum('total_price'),
+    ];
+
+    return view('client.clientPage', compact('user','orders', 'stats'));
 }
 
 }

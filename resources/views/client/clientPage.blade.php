@@ -1,157 +1,133 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O'G Délice – Accueil</title>
-    @vite(['resources/css/app.css','resources/js/app.js'])
-</head>
-<body class="bg-gray-50 text-gray-800">
+@extends('layouts.client')
 
-    {{-- NAVBAR --}}
-    @include('menusPage.navBarClient')
+@section('content')
 
- {{-- HERO SECTION PRO --}}
-    <section class="bg-gradient-to-r from-orange-500 to-red-600 text-white pt-32">
-        <div class="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
-            <div>
-                <span class="uppercase tracking-wide text-sm text-yellow-200">Fast-Food • Traiteur</span>
-                <h1 class="mt-4 text-4xl md:text-5xl font-extrabold leading-tight">
-                    Le goût qui rassemble,
-                    <span class="block text-yellow-300">la qualité qui fidélise</span>
-                </h1>
-                <p class="mt-6 text-lg text-orange-100 max-w-xl">
-                    Commandez vos plats préférés chez <strong>O'G Délice</strong> : burgers, plats chauds et services traiteur pour tous vos événements.
-                </p>
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="#menu" class="bg-white text-orange-600 font-semibold px-8 py-4 rounded-xl shadow hover:bg-orange-100 transition">
-                        Voir le menu
-                    </a>
-                    <a href="#" class="border border-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-orange-600 transition">
-                        Se connecter
-                    </a>
-                </div>
-            </div>
-            <div class="hidden md:block">
-                <img src="https://images.unsplash.com/photo-1550547660-d9450f859349" alt="Burger" class="rounded-3xl shadow-2xl">
-            </div>
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+
+    <div class="max-w-7xl mx-auto">
+
+        {{-- HEADER --}}
+        <div class="mb-10">
+            <h1 class="text-3xl font-bold text-gray-800">
+                Bonjour {{ auth()->user()->name }} 👋
+            </h1>
+            <p class="text-gray-500 mt-2">
+                Voici un aperçu de votre activité.
+            </p>
         </div>
-    </section>
 
-    <section id="specialite" class="py-24 bg-gray-100">
-    <div class="max-w-7xl mx-auto px-6 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-12 text-orange-600">
-            Nos Spécialités
-        </h2>
+        {{-- STATS CARDS --}}
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
 
-        <div class="grid md:grid-cols-3 gap-10">
-
-            <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-semibold mb-4">Thiéboudienne</h3>
-                <p class="text-gray-600">
-                    Le plat national sénégalais préparé avec passion.
-                </p>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-semibold mb-4">Thiébou Guinar</h3>
-                <p class="text-gray-600">
-                    Riz savoureux accompagné de poulet braisé.
-                </p>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-semibold mb-4">Jus de Bissap</h3>
-                <p class="text-gray-600">
-                    Boisson fraîche naturelle aux saveurs authentiques.
-                </p>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-
-    {{-- MENU DYNAMIQUE --}}
-    <section id="menu" class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold">Notre Menu</h2>
-                <p class="mt-4 text-gray-600">Découvrez nos plats soigneusement préparés</p>
-            </div>
-
-            {{-- CATEGORIES --}}
-            @foreach($categories as $category)
-                <div class="mb-16">
-                    <h3 class="text-2xl font-semibold mb-8 text-orange-600">{{ $category->name }}</h3>
-
-                    <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        @foreach($category->products as $product)
-                            <div class="bg-gray-50 rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
-                                <img src="{{ $product->image ?? 'https://via.placeholder.com/300' }}"
-                                     alt="{{ $product->name }}"
-                                     class="h-40 w-full object-cover">
-                                <div class="p-5">
-                                    <h4 class="font-semibold text-lg">{{ $product->name }}</h4>
-                                    <p class="text-sm text-gray-500 mt-1 line-clamp-2">
-                                        {{ $product->description }}
-                                    </p>
-                                    <div class="mt-4 flex items-center justify-between">
-                                        <span class="font-bold text-orange-600">
-                                            {{ number_format($product->price, 0, ',', ' ') }} FCFA
-                                        </span>
-                                        <form action="{{ route('cart.add', $product->id) }}" method="POST">
-    @csrf
-    <button class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
-        Ajouter
-    </button>
-</form>
-
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+            {{-- Total commandes --}}
+            <div class="bg-white p-8 rounded-3xl shadow hover:shadow-xl transition border-l-4 border-orange-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-gray-500">Total commandes</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-2">
+                            {{ $stats['total_orders'] }}
+                        </p>
+                    </div>
+                    <div class="text-4xl text-orange-500">
+                        📦
                     </div>
                 </div>
-            @endforeach
+            </div>
+
+            {{-- En cours --}}
+            <div class="bg-white p-8 rounded-3xl shadow hover:shadow-xl transition border-l-4 border-yellow-400">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-gray-500">Commandes en cours</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-2">
+                            {{ $stats['pending_orders'] }}
+                        </p>
+                    </div>
+                    <div class="text-4xl text-yellow-400">
+                        ⏳
+                    </div>
+                </div>
+            </div>
+
+            {{-- Total dépensé --}}
+            <div class="bg-white p-8 rounded-3xl shadow hover:shadow-xl transition border-l-4 border-green-500">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-gray-500">Total dépensé</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-2">
+                            {{ number_format($stats['total_spent'], 0, ',', ' ') }} FCFA
+                        </p>
+                    </div>
+                    <div class="text-4xl text-green-500">
+                        💰
+                    </div>
+                </div>
+            </div>
+
         </div>
-    </section>
 
-    {{-- CTA --}}
-    <section class="py-20 bg-gray-900 text-white text-center">
-        <h2 class="text-3xl font-bold mb-6">Un événement à organiser ?</h2>
-        <p class="text-gray-300 mb-8">Faites confiance à notre service traiteur professionnel.</p>
-        <a href="#" class="bg-orange-500 px-8 py-4 rounded-xl font-semibold hover:bg-orange-600 transition">
-            Réserver un traiteur
-        </a>
-   </section>
-    {{-- FOOTER --}}
-    <footer class="bg-gray-800 text-gray-300 py-6 text-center">
-        <p>© {{ date('Y') }} O'G Délice. Tous droits réservés.</p>
-    </footer>
+        {{-- DERNIERES COMMANDES --}}
+        <div class="bg-white rounded-3xl shadow p-8">
 
-    <script>
-    const navbar = document.getElementById('navbar');
-    const navTexts = document.querySelectorAll('.nav-text');
-    const navLinks = document.querySelectorAll('.nav-link');
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Dernières commandes</h2>
 
-    window.addEventListener('scroll', function () {
-        if (window.scrollY > 50) {
-            navbar.classList.remove('bg-transparent');
-            navbar.classList.add('bg-white', 'shadow');
+                <a href="{{ route('client.orders') }}"
+                   class="text-orange-500 hover:underline text-sm">
+                    Voir tout
+                </a>
+            </div>
 
-            navTexts.forEach(el => el.classList.replace('text-white', 'text-gray-800'));
-            navLinks.forEach(el => el.classList.add('text-gray-800'));
-        } else {
-            navbar.classList.add('bg-transparent');
-            navbar.classList.remove('bg-white', 'shadow');
+            @forelse($orders->take(5) as $order)
+                <div class="flex justify-between items-center py-4 border-b last:border-0">
 
-            navTexts.forEach(el => el.classList.replace('text-gray-800', 'text-white'));
-            navLinks.forEach(el => el.classList.remove('text-gray-800'));
-        }
-    });
-</script>
+                    <div>
+                        <p class="font-semibold">
+                            Commande #{{ $order->id }}
+                        </p>
 
+                        <p class="text-sm text-gray-500">
+                            {{ $order->created_at->format('d M Y - H:i') }}
+                        </p>
+                    </div>
 
-</body>
-</html>
+                    <div class="flex items-center gap-6">
+
+                        {{-- Status Badge --}}
+                        <span class="px-4 py-1 rounded-full text-sm font-medium
+                            @if($order->status == 'pending') bg-yellow-100 text-yellow-700
+                            @elseif($order->status == 'completed') bg-green-100 text-green-700
+                            @elseif($order->status == 'cancelled') bg-red-100 text-red-700
+                            @else bg-gray-100 text-gray-700
+                            @endif
+                        ">
+                            {{ ucfirst($order->status) }}
+                        </span>
+
+                        <span class="font-bold text-orange-600">
+                            {{ number_format($order->total_price, 0, ',', ' ') }} FCFA
+                        </span>
+
+                    </div>
+                </div>
+            @empty
+                <p class="text-gray-500 text-center py-6">
+                    Aucune commande pour le moment.
+                </p>
+            @endforelse
+
+        </div>
+
+        {{-- CTA --}}
+        <div class="mt-10 text-center">
+            <a href="{{ url('/') }}"
+               class="bg-orange-500 text-white px-8 py-4 rounded-2xl shadow hover:bg-orange-600 transition text-lg">
+                Commander maintenant
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+@endsection
