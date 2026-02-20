@@ -7,44 +7,55 @@ use App\Models\Product;
 
 class CartController extends Controller
 {
-    public function index()
-    {
-        $cart = session()->get('cart', []);
-        return view('cart', compact('cart'));
+   public function index()
+{
+    $cart = session()->get('cart', []);
+    $total = collect($cart)->sum(function ($item) {
+        return $item['price'] * $item['quantity'];
+    });
+
+    return view('cart.index', compact('cart', 'total'));
+}
+   public function add(Request $request, $id)
+{
+    $product = Product::findOrFail($id);
+
+    $cart = session()->get('cart', []);
+
+    if(isset($cart[$id])) {
+        $cart[$id]['quantity']++;
+    } else {
+        $cart[$id] = [
+            "name" => $product->name,
+            "price" => $product->price,
+            "image" => $product->image,
+            "quantity" => 1
+        ];
     }
 
-    public function add($id)
-    {
-        $product = Product::findOrFail($id);
-        $cart = session()->get('cart', []);
+    session()->put('cart', $cart);
 
-        if(isset($cart[$id])) {
-            $cart[$id]['quantity']++;
-        } else {
-            $cart[$id] = [
-                "name" => $product->name,
-                "quantity" => 1,
-                "price" => $product->price,
-                "image" => $product->image
-            ];
-        }
-
-        session()->put('cart', $cart);
-
-        return redirect()->back()->with('success', 'Produit ajouté au panier');
-    }
+    return response()->json([
+        'success' => true,
+        'cartCount' => count($cart)
+    ]);
+}
 
     public function update(Request $request, $id)
-    {
-        $cart = session()->get('cart');
+{
+    $request->validate([
+        'quantity' => 'required|integer|min:1'
+    ]);
 
-        if(isset($cart[$id])) {
-            $cart[$id]['quantity'] = $request->quantity;
-            session()->put('cart', $cart);
-        }
+    $cart = session()->get('cart', []);
 
-        return redirect()->route('cart.index');
+    if(isset($cart[$id])) {
+        $cart[$id]['quantity'] = $request->quantity;
+        session()->put('cart', $cart);
     }
+
+    return redirect()->route('cart.index');
+}
 
     public function remove($id)
     {

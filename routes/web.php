@@ -11,16 +11,35 @@ use App\Http\Controllers\{
 };
 use App\Http\Controllers\Client\DashboardClientController;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/client/dashboard', [DashboardClientController::class, 'index'])->name('client.dashboard');
-Route::get('/client/orders')->name('client.orders');
+Route::middleware(['auth'])
+    ->prefix('client')
+    ->name('client.')
+    ->group(function () {
+
+        Route::get('/dashboard', [DashboardClientController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('/orders', [DashboardClientController::class, 'orders'])
+            ->name('orders');
+
+});
 Route::get('/cart')->name('cart.index');
+Route::middleware('auth')->group(function () {
 
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/update/{id}', [CartController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::patch('/cart/update/{id}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/menu', [ProductController::class, 'menu'])->name('menu');
+Route::post('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
 
-Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
+});
+Route::middleware('auth')->post('/checkout', [OrderController::class, 'store'])->name('checkout');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
-Route::post('/order', [OrderController::class, 'store'])->middleware('auth');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

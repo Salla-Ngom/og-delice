@@ -7,7 +7,7 @@
                 <span class="text-white font-bold">O'G</span>
             </div>
             <div class="leading-tight">
-                <span class="text-xl font-bold text-gray-800 block">
+                 <span class="text-xl font-bold text-gray-800 block">
                     O’G Délice
                 </span>
                 <span class="text-sm text-gray-500 block">
@@ -22,16 +22,22 @@
             <a href="{{ route('client.dashboard') }}" class="hover:text-orange-500 transition">
                 Tableau de bord
             </a>
-
-            <a href="{{ route('cart.index') }}" class="relative hover:text-orange-500 transition text-xl">
-                🛒
-                @if(session('cart'))
-                    <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                        {{ count(session('cart')) }}
-                    </span>
-                @endif
-            </a>
-
+            <div class="relative cursor-pointer">
+                <a href="{{ route('cart.index') }}" class="relative hover:text-orange-500 transition text-xl">
+                    🛒
+                    @if (session('cart'))
+                        <span
+                            class="absolute -top-2 -right-3 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                            {{ count(session('cart')) }}
+                        </span>
+                    @endif
+                </a>
+                <span x-text="cartCount"
+                  x-show="cartCount > 0"
+                  x-transition
+                  class="absolute -top-2 -right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+            </span>
+            </div>
             {{-- AUTH --}}
             @auth
                 <div class="relative group">
@@ -39,10 +45,10 @@
                         {{ auth()->user()->name }}
                     </button>
 
-                    <div class="absolute right-0 hidden group-hover:block bg-white shadow-xl rounded-xl mt-3 w-48 overflow-hidden border">
+                    <div
+                        class="absolute right-0 hidden group-hover:block bg-white shadow-xl rounded-xl mt-3 w-48 overflow-hidden border">
 
-                        <a href="{{ route('profile.edit') }}"
-                           class="block px-4 py-3 hover:bg-gray-100 transition">
+                        <a href="{{ route('profile.edit') }}" class="block px-4 py-3 hover:bg-gray-100 transition">
                             Profil
                         </a>
 
@@ -62,7 +68,7 @@
 
         {{-- MOBILE BUTTON --}}
         <div class="md:hidden text-gray-800 text-2xl cursor-pointer"
-             onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
+            onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
             ☰
         </div>
     </div>

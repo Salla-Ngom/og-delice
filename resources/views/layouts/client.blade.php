@@ -15,6 +15,15 @@
     <footer class="bg-gray-800 text-gray-300 py-6 text-center">
         <p>© {{ date('Y') }} O'G Délice. Tous droits réservés.</p>
     </footer>
-
+<script>
+function cartComponent() {
+    return {
+        cartCount: {{ session('cart') ? count(session('cart')) : 0 }},
+        updateCount(count) {
+            this.cartCount = count
+        }
+    }
+}
+</script>
 </body>
 </html>
