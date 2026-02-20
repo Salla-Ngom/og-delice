@@ -10,51 +10,42 @@ use Illuminate\Http\Request;
 class OrderController extends Controller
 {
 
-
-public function store()
+public function store(Request $request)
 {
-    $cart = session()->get('cart', []);
+    $cart = session()->get('cart');
 
-    if (empty($cart)) {
-        return redirect()->back()->with('error', 'Panier vide');
+    if (!$cart || count($cart) == 0) {
+        return redirect()->back()->with('error', 'Votre panier est vide');
     }
 
-    DB::beginTransaction();
+    $total = 0;
 
-    try {
+    foreach ($cart as $item) {
+        $total += $item['price'] * $item['quantity'];
+    }
 
-        $total = collect($cart)->sum(function ($item) {
-            return $item['price'] * $item['quantity'];
-        });
+    // Création de la commande
+    $order = Order::create([
+        'user_id'    => auth()->id(),
+        'total_price'=> $total,
+        'status' => 'en_attente'
+    ]);
 
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'total_price' => $total,
-            'status' => 'pending'
+    // Création des lignes de commande
+    foreach ($cart as $id => $item) {
+        OrderItem::create([
+            'order_id'  => $order->id,
+            'product_id'=> $id,
+            'quantity'  => $item['quantity'],
+            'price'     => $item['price']
         ]);
-
-        foreach ($cart as $id => $item) {
-
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $id,
-                'quantity' => $item['quantity'],
-                'price' => $item['price']
-            ]);
-        }
-
-        DB::commit();
-
-        session()->forget('cart');
-
-        return redirect()->route('client.dashboard')
-            ->with('success', 'Commande enregistrée avec succès 🎉');
-
-    } catch (\Exception $e) {
-
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Erreur lors de la commande');
-
     }
+
+    // Vider le panier
+    session()->forget('cart');
+
+    return redirect()
+        ->route('client.dashboard')
+        ->with('success', 'Commande passée avec succès 🎉');
 }
 }

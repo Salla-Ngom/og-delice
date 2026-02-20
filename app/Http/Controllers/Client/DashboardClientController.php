@@ -31,5 +31,16 @@ public function index()
 
     return view('client.clientPage', compact('user','orders', 'stats'));
 }
+public function orders()
+{
+    $user = auth()->user();
+
+    $orders = $user->orders()
+                   ->with('items.product')
+                   ->latest()
+                   ->get();
+
+    return view('client.orders', compact('orders'));
+}
 
 }
