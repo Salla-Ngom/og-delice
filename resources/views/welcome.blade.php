@@ -88,7 +88,7 @@
                     <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                         @foreach($category->products as $product)
                             <div class="bg-gray-50 rounded-2xl shadow hover:shadow-lg transition overflow-hidden">
-                                <img src="{{ $product->image ?? 'https://via.placeholder.com/300' }}"
+                                <img src="{{ asset('storage/'.$product->image)}}"
                                      alt="{{ $product->name }}"
                                      class="h-40 w-full object-cover">
                                 <div class="p-5">

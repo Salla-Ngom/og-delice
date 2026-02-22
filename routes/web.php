@@ -10,7 +10,31 @@ use App\Http\Controllers\{
     CateringRequestController
 };
 use App\Http\Controllers\Client\DashboardClientController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Admin\AdminUserController;
 
+Route::middleware(['auth'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::resource('products', AdminProductController::class);
+
+        Route::resource('orders', AdminOrderController::class)
+            ->only(['index','show']);
+
+        Route::put('orders/{order}/status',
+            [AdminOrderController::class,'updateStatus'])
+            ->name('orders.updateStatus');
+
+        Route::resource('users', AdminUserController::class);
+
+});
 Route::middleware(['auth'])
     ->prefix('client')
     ->name('client.')
@@ -23,7 +47,6 @@ Route::middleware(['auth'])
             ->name('orders');
 
 });
-Route::get('/cart')->name('cart.index');
 Route::middleware('auth')->group(function () {
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -37,8 +60,6 @@ Route::post('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
 });
 Route::middleware('auth')->post('/checkout', [OrderController::class, 'store'])->name('checkout');
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
 
 Route::get('/dashboard', function () {
