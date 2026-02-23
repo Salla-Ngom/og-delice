@@ -19,7 +19,11 @@ Route::middleware(['auth'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+Route::resource('users', AdminUserController::class);
 
+Route::put('users/{user}/toggle-status',
+    [AdminUserController::class,'toggleStatus'])
+    ->name('users.toggleStatus');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
 
@@ -45,7 +49,8 @@ Route::middleware(['auth'])
 
         Route::get('/orders', [DashboardClientController::class, 'orders'])
             ->name('orders');
-
+Route::get('/orders/{order}', [DashboardClientController::class, 'show'])
+            ->name('orders.show');
 });
 Route::middleware('auth')->group(function () {
 

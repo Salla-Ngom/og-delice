@@ -49,13 +49,11 @@
                         </td>
 
                         <td class="p-4">
-                            <span class="px-3 py-1 rounded-full text-xs
-                                @if($order->status == 'pending') bg-yellow-100 text-yellow-700
-                                @elseif($order->status == 'completed') bg-green-100 text-green-700
-                                @else bg-red-100 text-red-700
-                                @endif">
-                                {{ ucfirst($order->status) }}
-                            </span>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+    {{ $order->status_badge }}
+    {{ $order->status == 'en_preparation' ? 'animate-pulse' : '' }}">
+    {{ $order->status_label }}
+</span>
                         </td>
 
                         <td class="p-4 text-gray-500 text-sm">

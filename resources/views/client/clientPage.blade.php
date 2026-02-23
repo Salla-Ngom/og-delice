@@ -39,7 +39,7 @@
                         <div>
                             <h3 class="text-gray-500">Commandes en cours</h3>
                             <p class="text-4xl font-bold text-gray-800 mt-2">
-                                {{ $stats['pending_orders'] }}
+                               {{ $orders->where('status','en_preparation')->count() }}
                             </p>
                         </div>
                         <div class="text-4xl text-yellow-400">
@@ -94,15 +94,11 @@
                         <div class="flex items-center gap-6">
 
                             {{-- Status Badge --}}
-                            <span
-                                class="px-4 py-1 rounded-full text-sm font-medium
-                            @if ($order->status == 'pending') bg-yellow-100 text-yellow-700
-                            @elseif($order->status == 'completed') bg-green-100 text-green-700
-                            @elseif($order->status == 'cancelled') bg-red-100 text-red-700
-                            @else bg-gray-100 text-gray-700 @endif
-                        ">
-                                {{ ucfirst($order->status) }}
-                            </span>
+                         <span class="px-3 py-1 rounded-full text-xs font-semibold
+    {{ $order->status_badge }}
+    {{ $order->status == 'en_preparation' ? 'animate-pulse' : '' }}">
+    {{ $order->status_label }}
+</span>
 
                             <span class="font-bold text-orange-600">
                                 {{ number_format($order->total_price, 0, ',', ' ') }} FCFA

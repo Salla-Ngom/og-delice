@@ -23,4 +23,17 @@ class AdminOrderController extends Controller
 
         return view('admin.orders.show', compact('order'));
     }
+
+public function updateStatus(Request $request, Order $order)
+{
+    $validated = $request->validate([
+        'status' => 'required|in:en_attente,en_preparation,prete,annulee'
+    ]);
+
+    $order->update([
+        'status' => $validated['status']
+    ]);
+
+    return back()->with('success', 'Statut mis à jour avec succès');
+}
 }

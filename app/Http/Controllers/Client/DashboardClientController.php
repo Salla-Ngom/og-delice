@@ -42,5 +42,16 @@ public function orders()
 
     return view('client.orders', compact('orders'));
 }
+public function show(Order $order)
+{
+    // Sécurité : empêcher de voir la commande d’un autre utilisateur
+    if ($order->user_id !== auth()->id()) {
+        abort(403);
+    }
+
+    $order->load('items.product');
+
+    return view('client.show', compact('order'));
+}
 
 }

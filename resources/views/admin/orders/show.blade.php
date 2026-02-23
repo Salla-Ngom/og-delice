@@ -78,17 +78,29 @@
             @method('PUT')
 
             <select name="status"
-                    class="border rounded-lg px-4 py-2">
-                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>
-                    En attente
-                </option>
-                <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>
-                    Complétée
-                </option>
-                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>
-                    Annulée
-                </option>
-            </select>
+        class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+
+    <option value="en_attente"
+        {{ $order->status == 'en_attente' ? 'selected' : '' }}>
+        En attente
+    </option>
+
+    <option value="en_preparation"
+        {{ $order->status == 'en_preparation' ? 'selected' : '' }}>
+        En préparation
+    </option>
+
+    <option value="prete"
+        {{ $order->status == 'prete' ? 'selected' : '' }}>
+        Prête
+    </option>
+
+    <option value="annulee"
+        {{ $order->status == 'annulee' ? 'selected' : '' }}>
+        Annulée
+    </option>
+
+</select>
 
             <button type="submit"
                     class="ml-4 px-5 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
