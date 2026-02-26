@@ -6,7 +6,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
 class OrderController extends Controller
 {
 
@@ -39,6 +40,17 @@ public function store(Request $request)
             'quantity'  => $item['quantity'],
             'price'     => $item['price']
         ]);
+         // Création de la commande
+    $order = Order::create([
+        'user_id'    => auth()->id(),
+        'total_price'=> $total,
+        'status' => 'en_attente'
+    ]);
+    $admins = User::whereIn('role', ['admin'])->get();
+
+foreach ($admins as $admin) {
+    $admin->notify(new NewOrderNotification($order));
+}
     }
 
     // Vider le panier

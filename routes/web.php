@@ -20,7 +20,9 @@ Route::middleware(['auth'])
     ->name('admin.')
     ->group(function () {
 Route::resource('users', AdminUserController::class);
-
+Route::get('notifications', function () {
+    return view('admin.notifications');
+})->name('notifications');
 Route::put('users/{user}/toggle-status',
     [AdminUserController::class,'toggleStatus'])
     ->name('users.toggleStatus');

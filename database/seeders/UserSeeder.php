@@ -10,27 +10,38 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-       
+        // 🔐 Super Admin
+        User::updateOrCreate(
+            ['email' => 'admin@ogdelice.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
-        User::create([
-            'name' => 'Admin O’G Délice',
-            'email' => 'admin@ogdelice.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
-
-        User::create([
-            'name' => 'Vendeur Principal',
-            'email' => 'vendeur@ogdelice.com',
-            'password' => Hash::make('password'),
-            'role' => 'vendeur',
-        ]);
-
-        User::create([
-            'name' => 'Client Test',
-            'email' => 'client@ogdelice.com',
-            'password' => Hash::make('password'),
-            'role' => 'client',
-        ]);
+        // 🛒 Vendeur
+        User::updateOrCreate(
+            ['email' => 'vendeur@ogdelice.com'],
+            [
+                'name' => 'Vendeur O\'G',
+                'password' => Hash::make('password'),
+                'role' => 'vendeur',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+        User::updateOrCreate(
+            ['email' => 'client@ogdelice.com'],
+            [
+                'name' => 'Delmontero',
+                'password' => Hash::make('password'),
+                'role' => 'client',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

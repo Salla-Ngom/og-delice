@@ -45,16 +45,28 @@
 
         {{-- COMMANDES --}}
         <a href="{{ route('admin.orders.index') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl transition
+           class="flex items-center justify-between px-4 py-3 rounded-xl transition
            {{ request()->routeIs('admin.orders.*') ? 'bg-orange-500 text-white shadow-lg' : 'hover:bg-gray-800' }}">
 
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M9 17v-6h13M9 7h13M5 7h.01M5 11h.01M5 15h.01"/>
-            </svg>
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 17v-6h13M9 7h13M5 7h.01M5 11h.01M5 15h.01"/>
+                </svg>
+                Commandes
+            </div>
 
-            Commandes
+            {{-- BADGE NOTIFICATION --}}
+            @php
+                $count = auth()->user()->unreadNotifications->count();
+            @endphp
+
+            @if($count > 0)
+                <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                    {{ $count }}
+                </span>
+            @endif
         </a>
 
         {{-- USERS --}}
