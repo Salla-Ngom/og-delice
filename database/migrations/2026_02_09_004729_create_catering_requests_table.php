@@ -6,27 +6,31 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-      Schema::create('catering_requests', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-    $table->date('event_date');
-    $table->integer('guests');
-    $table->text('message')->nullable();
-    $table->enum('status', ['en_attente', 'confirme', 'refuse'])
-          ->default('en_attente');
-    $table->timestamps();
-});
+        Schema::create('catering_requests', function (Blueprint $table) {
+            $table->id();
 
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->cascadeOnDelete();
+
+            $table->date('event_date');
+            $table->unsignedSmallInteger('guests');
+            $table->text('message')->nullable();
+
+            $table->enum('status', ['en_attente', 'confirme', 'refuse'])
+                  ->default('en_attente');
+
+            $table->timestamps();
+
+            // Index pour les filtres admin
+            $table->index('status');
+            $table->index('event_date');
+            $table->index(['status', 'event_date']); // filtre combiné le plus fréquent
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('catering_requests');

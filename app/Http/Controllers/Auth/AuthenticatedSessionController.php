@@ -25,19 +25,24 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
 {
     $request->authenticate();
+
+    // Vérifier si le compte est actif
+    if (!auth()->user()->is_active) {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+            ->withErrors(['email' => 'Votre compte a été désactivé. Contactez l\'administrateur.']);
+    }
+
     $request->session()->regenerate();
 
-    $user = auth()->user();
-
-    if ($user->isAdmin()) {
-        return redirect()->route('admin.dashboard');
-    }
-
-    if ($user->isVendeur()) {
-        return redirect()->route('vendeur.dashboard');
-    }
-
-    return redirect()->route('client.dashboard');
+    return match (true) {
+        auth()->user()->isAdmin()   => redirect()->route('admin.dashboard'),
+        auth()->user()->isVendeur() => redirect()->route('admin.dashboard'), // ou vendeur.dashboard
+        default                     => redirect()->route('client.dashboard'),
+    };
 }
 
 

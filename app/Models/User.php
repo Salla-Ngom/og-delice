@@ -11,12 +11,11 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    // ✅ role et is_active retirés — ne jamais les laisser mass-assignables
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
-        'is_active',
     ];
 
     protected $hidden = [
@@ -26,12 +25,13 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'is_active' => 'boolean',
+        'is_active'         => 'boolean',
+        // 'role' => \App\Enums\UserRole::class, // ← décommenter quand l'Enum sera créé
     ];
 
     /*
     |--------------------------------------------------------------------------
-    | Relations
+    | RELATIONS
     |--------------------------------------------------------------------------
     */
 
@@ -47,7 +47,7 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | Helpers métier
+    | HELPERS MÉTIER
     |--------------------------------------------------------------------------
     */
 
@@ -66,35 +66,56 @@ class User extends Authenticatable
         return $this->role === 'client';
     }
 
+    public function canAccessAdmin(): bool
+    {
+        return $this->isAdmin() || $this->isVendeur();
+    }
+
     /*
     |--------------------------------------------------------------------------
-    | Accessor Badge Role (UI Premium)
+    | ACCESSORS — syntaxe moderne Laravel 9+
     |--------------------------------------------------------------------------
     */
 
+    // Badge CSS TailwindCSS selon le rôle
     protected function roleBadge(): Attribute
     {
         return Attribute::make(
-            get: function () {
-                return match ($this->role) {
-                    'admin' => 'bg-red-100 text-red-700',
-                    'vendeur' => 'bg-blue-100 text-blue-700',
-                    default => 'bg-green-100 text-green-700',
-                };
+            get: fn() => match ($this->role) {
+                'admin'   => 'bg-red-100 text-red-700',
+                'vendeur' => 'bg-blue-100 text-blue-700',
+                default   => 'bg-green-100 text-green-700',
             }
         );
     }
 
+    // Label lisible selon le rôle
     protected function roleLabel(): Attribute
     {
         return Attribute::make(
-            get: function () {
-                return match ($this->role) {
-                    'admin' => 'Administrateur',
-                    'vendeur' => 'Vendeur',
-                    default => 'Client',
-                };
+            get: fn() => match ($this->role) {
+                'admin'   => 'Administrateur',
+                'vendeur' => 'Vendeur',
+                default   => 'Client',
             }
+        );
+    }
+
+    // Statut lisible
+    protected function statusLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->is_active ? 'Actif' : 'Inactif'
+        );
+    }
+
+    // Badge CSS statut
+    protected function statusBadge(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->is_active
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
         );
     }
 }
