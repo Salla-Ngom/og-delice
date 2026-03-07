@@ -46,10 +46,12 @@ class OrderController extends Controller
                 $total  += $product->final_price * $item['quantity'];
             }
 
-            // Créer la commande — user_id assigné explicitement
-            $order = Order::create(['total_price' => $total]);
-            $order->user_id = auth()->id();
-            $order->status  = 'en_attente';
+            // ✅ new + save() — tout est assigné AVANT l'INSERT
+            // Order::create() envoie l'INSERT immédiatement, user_id manquant = erreur MySQL
+            $order              = new Order();
+            $order->user_id     = auth()->id();
+            $order->total_price = $total;
+            $order->status      = 'en_attente';
             $order->save();
 
             // Créer les lignes avec snapshot des prix

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminLiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,33 +39,34 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Dashboard
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
 
-        // Produits
         Route::resource('products', AdminProductController::class);
 
-        // Commandes
         Route::resource('orders', AdminOrderController::class)
             ->only(['index', 'show']);
 
-        Route::put('orders/{order}/status',
-            [AdminOrderController::class, 'updateStatus'])
+        Route::put('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
             ->name('orders.updateStatus');
 
-        // Utilisateurs
         Route::resource('users', AdminUserController::class);
 
-        Route::put('users/{user}/toggle-status',
-            [AdminUserController::class, 'toggleStatus'])
+        Route::put('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggleStatus');
 
-        // Notifications
-        Route::get('notifications', function () {
-            return view('admin.notifications');
-        })->name('notifications');
-});
+        // ✅ CORRIGÉ — notifications via contrôleur (closure supprimée → route:cache fonctionne)
+        Route::get('notifications', [AdminOrderController::class, 'notifications'])
+            ->name('notifications');
+
+        // ✅ AJOUT — marquer toutes les notifications comme lues
+        // ✅ Polling temps réel
+        Route::get('live/poll', [AdminLiveController::class, 'poll'])
+            ->name('live.poll');
+
+        Route::post('notifications/mark-all-read', [AdminOrderController::class, 'markAllRead'])
+            ->name('notifications.markAllRead');
+    });
 
 
 /*
@@ -78,18 +80,15 @@ Route::middleware(['auth', 'client'])
     ->name('client.')
     ->group(function () {
 
-        Route::get('/dashboard',
-            [DashboardClientController::class, 'index'])
+        Route::get('/dashboard', [DashboardClientController::class, 'index'])
             ->name('dashboard');
 
-        Route::get('/orders',
-            [DashboardClientController::class, 'orders'])
+        Route::get('/orders', [DashboardClientController::class, 'orders'])
             ->name('orders');
 
-        Route::get('/orders/{order}',
-            [DashboardClientController::class, 'show'])
+        Route::get('/orders/{order}', [DashboardClientController::class, 'show'])
             ->name('orders.show');
-});
+    });
 
 
 /*
@@ -100,25 +99,11 @@ Route::middleware(['auth', 'client'])
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/cart',
-        [CartController::class, 'index'])
-        ->name('cart.index');
-
-    Route::post('/cart/add/{id}',
-        [CartController::class, 'add'])
-        ->name('cart.add');
-
-    Route::patch('/cart/update/{id}',
-        [CartController::class, 'update'])
-        ->name('cart.update');
-
-    Route::delete('/cart/remove/{id}',
-        [CartController::class, 'remove'])
-        ->name('cart.remove');
-
-    Route::post('/checkout',
-        [OrderController::class, 'store'])
-        ->name('checkout');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
+    Route::patch('/cart/update/{id}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/checkout', [OrderController::class, 'store'])->name('checkout');
 });
 
 
@@ -129,18 +114,9 @@ Route::middleware('auth')->group(function () {
 */
 
 Route::middleware('auth')->group(function () {
-
-    Route::get('/profile',
-        [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    Route::patch('/profile',
-        [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::delete('/profile',
-        [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 

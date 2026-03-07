@@ -12,11 +12,10 @@ class AdminOrderController extends Controller
 {
     public function index(Request $request)
     {
-        // Filtre par statut depuis l'URL : /admin/orders?status=en_attente
         $status = $request->string('status')->toString() ?: null;
 
-        $orders = Order::with('user')   // ✅ eager loading — évite N+1
-            ->byStatus($status)         // ✅ scope sécurisé du modèle
+        $orders = Order::with('user')
+            ->byStatus($status)
             ->latest()
             ->paginate(15);
 
@@ -25,8 +24,14 @@ class AdminOrderController extends Controller
 
     public function show(Order $order)
     {
-        // ✅ Eager loading complet en une requête
         $order->load(['user', 'items.product']);
+
+        // ✅ AJOUT — marquer comme lue la notification liée à cette commande
+        // Quand l'admin clique sur une commande depuis la liste des notifs, read_at est rempli
+        auth()->user()
+            ->unreadNotifications()
+            ->where('data->order_id', $order->id)
+            ->update(['read_at' => now()]);
 
         return view('admin.orders.show', compact('order'));
     }
@@ -37,16 +42,34 @@ class AdminOrderController extends Controller
             'status' => ['required', 'in:' . implode(',', Order::STATUSES)],
         ]);
 
-        // ✅ Utiliser transitionTo() du modèle — sécurisé + invalide le cache
         $success = $order->transitionTo($validated['status']);
 
         if (!$success) {
             return back()->with('error', 'Statut invalide.');
         }
 
-        // ✅ Invalider le cache dashboard après changement de statut
         Cache::forget('admin.dashboard.stats');
 
         return back()->with('success', 'Statut mis à jour.');
+    }
+
+    // ✅ AJOUT — page notifications avec données réelles
+    public function notifications()
+    {
+        $notifications = auth()->user()
+            ->notifications()
+            ->orderByRaw('read_at IS NOT NULL') // non lues en premier
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.notifications', compact('notifications'));
+    }
+
+    // ✅ AJOUT — bouton "Tout marquer comme lu"
+    public function markAllRead(): RedirectResponse
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+
+        return back()->with('success', 'Toutes les notifications ont été marquées comme lues.');
     }
 }
