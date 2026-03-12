@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DashboardClientController extends Controller
@@ -12,7 +13,6 @@ class DashboardClientController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ Eager loading avec items — évite N+1 sur la vue
         $orders = $user->orders()
             ->with('items.product')
             ->latest()
@@ -21,7 +21,6 @@ class DashboardClientController extends Controller
 
         $stats = [
             'total_orders'   => $user->orders()->count(),
-            // ✅ Statuts corrigés — 'pending' et 'completed' n'existent pas dans ce projet
             'pending_orders' => $user->orders()->enAttente()->count(),
             'total_spent'    => $user->orders()->prete()->sum('total_price'),
         ];
@@ -31,10 +30,7 @@ class DashboardClientController extends Controller
 
     public function orders()
     {
-        $user = auth()->user();
-
-        // ✅ Pagination — ne jamais faire ->get() sur une liste sans limite
-        $orders = $user->orders()
+        $orders = auth()->user()->orders()
             ->with('items.product')
             ->latest()
             ->paginate(10);
@@ -44,7 +40,6 @@ class DashboardClientController extends Controller
 
     public function show(Order $order)
     {
-        // ✅ Vérification d'appartenance — un client ne peut pas voir la commande d'un autre
         if ($order->user_id !== auth()->id()) {
             abort(403);
         }
@@ -52,5 +47,23 @@ class DashboardClientController extends Controller
         $order->load('items.product');
 
         return view('client.show', compact('order'));
+    }
+
+    // ✅ Endpoint JSON pour le polling statut dans show.blade.php
+    // Appelé toutes les 20s — retourne uniquement le statut, pas toute la commande
+    public function pollStatus(Order $order): JsonResponse
+    {
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Relire uniquement le statut depuis la DB (pas de cache — on veut le temps réel)
+        $order->refresh();
+
+        return response()->json([
+            'status'       => $order->status,
+            'status_label' => $order->status_label,
+            'status_badge' => $order->status_badge,
+        ]);
     }
 }

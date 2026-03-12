@@ -77,12 +77,7 @@
     </nav>
 
     {{-- Indicateur de connexion live --}}
-    <div class="px-4 pb-2">
-        <div class="flex items-center gap-2 text-xs text-gray-600">
-            <span id="live-dot" class="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block"></span>
-            <span id="live-label">Synchronisation active</span>
-        </div>
-    </div>
+
 
     {{-- FOOTER --}}
     <div class="p-4 border-t border-gray-800">

@@ -11,11 +11,14 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // ✅ role et is_active retirés — ne jamais les laisser mass-assignables
+    // ✅ role et is_active hors fillable — jamais mass-assignables
+    // ✅ phone et delivery_address OK dans fillable (pas sensibles)
     protected $fillable = [
         'name',
         'email',
         'password',
+        'phone',
+        'delivery_address',
     ];
 
     protected $hidden = [
@@ -26,7 +29,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_active'         => 'boolean',
-        // 'role' => \App\Enums\UserRole::class, // ← décommenter quand l'Enum sera créé
     ];
 
     /*
@@ -73,11 +75,10 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | ACCESSORS — syntaxe moderne Laravel 9+
+    | ACCESSORS
     |--------------------------------------------------------------------------
     */
 
-    // Badge CSS TailwindCSS selon le rôle
     protected function roleBadge(): Attribute
     {
         return Attribute::make(
@@ -89,7 +90,6 @@ class User extends Authenticatable
         );
     }
 
-    // Label lisible selon le rôle
     protected function roleLabel(): Attribute
     {
         return Attribute::make(
@@ -101,7 +101,6 @@ class User extends Authenticatable
         );
     }
 
-    // Statut lisible
     protected function statusLabel(): Attribute
     {
         return Attribute::make(
@@ -109,13 +108,36 @@ class User extends Authenticatable
         );
     }
 
-    // Badge CSS statut
     protected function statusBadge(): Attribute
     {
         return Attribute::make(
             get: fn() => $this->is_active
                 ? 'bg-green-100 text-green-700'
                 : 'bg-red-100 text-red-700'
+        );
+    }
+
+    // ✅ Affichage formaté : 771234567 → 77 123 45 67
+    protected function formattedPhone(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->phone || strlen($this->phone) !== 9) {
+                    return $this->phone;
+                }
+                return substr($this->phone, 0, 2) . ' '
+                     . substr($this->phone, 2, 3) . ' '
+                     . substr($this->phone, 5, 2) . ' '
+                     . substr($this->phone, 7, 2);
+            }
+        );
+    }
+
+    // ✅ true si le client a renseigné une adresse de livraison
+    protected function hasDeliveryAddress(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => !empty($this->delivery_address)
         );
     }
 }

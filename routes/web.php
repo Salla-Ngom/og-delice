@@ -24,8 +24,16 @@ use App\Http\Controllers\Admin\AdminLiveController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/menu', [ProductController::class, 'menu'])
-    ->name('menu');
+Route::get('/menu', [ProductController::class, 'menu'])->name('menu');
+
+// ✅ Route /dashboard — Breeze y redirige après login (email verify, password confirm…)
+// Redirige selon le rôle sans erreur RouteNotFoundException
+Route::middleware('auth')->get('/dashboard', function () {
+    return match(true) {
+        in_array(auth()->user()->role, ['admin', 'vendeur']) => redirect()->route('admin.dashboard'),
+        default => redirect()->route('client.dashboard'),
+    };
+})->name('dashboard');
 
 
 /*
@@ -55,17 +63,14 @@ Route::middleware(['auth', 'admin'])
         Route::put('users/{user}/toggle-status', [AdminUserController::class, 'toggleStatus'])
             ->name('users.toggleStatus');
 
-        // ✅ CORRIGÉ — notifications via contrôleur (closure supprimée → route:cache fonctionne)
         Route::get('notifications', [AdminOrderController::class, 'notifications'])
             ->name('notifications');
 
-        // ✅ AJOUT — marquer toutes les notifications comme lues
-        // ✅ Polling temps réel
-        Route::get('live/poll', [AdminLiveController::class, 'poll'])
-            ->name('live.poll');
-
         Route::post('notifications/mark-all-read', [AdminOrderController::class, 'markAllRead'])
             ->name('notifications.markAllRead');
+
+        Route::get('live/poll', [AdminLiveController::class, 'poll'])
+            ->name('live.poll');
     });
 
 
@@ -88,6 +93,10 @@ Route::middleware(['auth', 'client'])
 
         Route::get('/orders/{order}', [DashboardClientController::class, 'show'])
             ->name('orders.show');
+
+        // ✅ Polling statut — appelé toutes les 20s par show.blade.php
+        Route::get('/orders/{order}/status', [DashboardClientController::class, 'pollStatus'])
+            ->name('orders.pollStatus');
     });
 
 

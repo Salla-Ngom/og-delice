@@ -13,7 +13,6 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
 
-        // Total calculé côté serveur depuis les prix DB — pas depuis la session
         $productIds = array_keys($cart);
         $products   = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
@@ -22,8 +21,10 @@ class CartController extends Controller
             $product = $products->get($id);
             if ($product) {
                 $total += $product->final_price * $item['quantity'];
-                // Mettre à jour le prix en session si le produit a changé de prix
+                // ✅ Resynchronise prix ET image à chaque affichage du panier
+                // Couvre les sessions anciennes qui avaient le chemin brut
                 $cart[$id]['price'] = $product->final_price;
+                $cart[$id]['image'] = $product->image_url; // ← sync ici aussi
             }
         }
 
@@ -41,7 +42,6 @@ class CartController extends Controller
 
         $currentQty = $cart[$id]['quantity'] ?? 0;
 
-        // Vérifier le stock disponible
         if ($currentQty >= $product->stock) {
             return response()->json([
                 'success' => false,
@@ -52,11 +52,13 @@ class CartController extends Controller
         if (isset($cart[$id])) {
             $cart[$id]['quantity']++;
         } else {
-            // On stocke uniquement l'ID en session — le prix est relu depuis la DB
             $cart[$id] = [
                 'name'     => $product->name,
-                'price'    => $product->final_price, // prix courant au moment de l'ajout
-                'image'    => $product->image,
+                'price'    => $product->final_price,
+                // ✅ image_url = URL complète via accessor Product
+                // $product->image = 'products/xxx.jpg' (chemin relatif storage)
+                // $product->image_url = asset('storage/products/xxx.jpg') ← ce qu'il faut dans src=""
+                'image'    => $product->image_url,
                 'quantity' => 1,
             ];
         }
@@ -65,7 +67,7 @@ class CartController extends Controller
 
         return response()->json([
             'success'   => true,
-            'cartCount' => collect($cart)->sum('quantity'), // total des articles, pas des lignes
+            'cartCount' => collect($cart)->sum('quantity'),
             'message'   => $product->name . ' ajouté au panier.',
         ]);
     }
@@ -83,7 +85,6 @@ class CartController extends Controller
                 ->with('error', 'Produit introuvable dans le panier.');
         }
 
-        // Vérifier le stock disponible
         $product = Product::find($id);
         if ($product && $request->quantity > $product->stock) {
             return redirect()->route('cart.index')

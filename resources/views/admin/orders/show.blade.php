@@ -27,7 +27,8 @@
         <h2 class="text-lg font-semibold mb-4">Client</h2>
         {{-- ✅ Nullsafe — user peut être supprimé --}}
         <p><strong>Nom :</strong> {{ $order->user?->name ?? 'Client supprimé' }}</p>
-        <p class="mt-1"><strong>Email :</strong> {{ $order->user?->email ?? '—' }}</p>
+        <p class="mt-1"><strong>Téléphone :</strong> {{ $order->user?->phone ?? '—' }}</p>
+        <p class="mt-1"><strong>Adresse :</strong> {{ $order->user?->delivery_address ?? '—' }}</p>
     </div>
 
     {{-- ARTICLES --}}

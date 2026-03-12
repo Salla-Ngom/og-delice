@@ -11,50 +11,38 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
-{
-    $request->authenticate();
+    {
+        $request->authenticate();
 
-    // Vérifier si le compte est actif
-    if (!auth()->user()->is_active) {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // ✅ Vérifier is_active AVANT de régénérer la session
+        if (!auth()->user()->is_active) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        return redirect()->route('login')
-            ->withErrors(['email' => 'Votre compte a été désactivé. Contactez l\'administrateur.']);
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Votre compte a été désactivé. Contactez l\'administrateur.']);
+        }
+
+        $request->session()->regenerate();
+
+        // ✅ Redirection par rôle — vendeur → admin dashboard (même espace)
+        return match(auth()->user()->role) {
+            'admin', 'vendeur' => redirect()->intended(route('admin.dashboard')),
+            default            => redirect()->intended(route('client.dashboard')),
+        };
     }
 
-    $request->session()->regenerate();
-
-    return match (true) {
-        auth()->user()->isAdmin()   => redirect()->route('admin.dashboard'),
-        auth()->user()->isVendeur() => redirect()->route('admin.dashboard'), // ou vendeur.dashboard
-        default                     => redirect()->route('client.dashboard'),
-    };
-}
-
-
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

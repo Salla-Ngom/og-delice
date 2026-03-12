@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Rules\SenegalPhone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
     public function edit(Request $request): View
     {
         return view('profile.edit', [
@@ -21,25 +19,41 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        // ✅ Validation inline — plus besoin de ProfileUpdateRequest séparé
+        $validated = $request->validate([
+            'name'             => ['required', 'string', 'max:255'],
+            'email'            => ['required', 'email', 'max:255',
+                                   Rule::unique('users')->ignore($request->user()->id)],
+            // ✅ Téléphone sénégalais optionnel
+            'phone'            => ['nullable', new SenegalPhone],
+            // ✅ Adresse de livraison optionnelle
+            'delivery_address' => ['nullable', 'string', 'max:500'],
+        ]);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user = $request->user();
+
+        $user->name  = $validated['name'];
+        $user->email = $validated['email'];
+
+        // Normalise le téléphone avant stockage : "77 123 45 67" → "771234567"
+        $user->phone = isset($validated['phone'])
+            ? SenegalPhone::normalize($validated['phone'])
+            : null;
+
+        $user->delivery_address = $validated['delivery_address'] ?? null;
+
+        // Révoquer la vérification email si l'adresse a changé
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [

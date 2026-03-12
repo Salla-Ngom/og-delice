@@ -52,7 +52,6 @@
 
     </div>
 
-    {{-- Alerte stock faible --}}
     @if($lowStock > 0)
         <div class="bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 rounded-xl flex items-center gap-3">
             <span class="text-xl">⚠️</span>
@@ -63,16 +62,15 @@
         </div>
     @endif
 
-    {{-- GRAPHIQUE + COMMANDES RÉCENTES --}}
     <div class="grid md:grid-cols-3 gap-8">
 
-        {{-- GRAPHIQUE --}}
+    
         <div class="md:col-span-2 bg-white p-8 rounded-3xl shadow-xl border">
             <h2 class="text-xl font-semibold text-gray-700 mb-6">📊 Ventes sur 7 jours</h2>
             <canvas id="salesChart" height="120"></canvas>
         </div>
 
-        {{-- COMMANDES RÉCENTES --}}
+    
         <div class="bg-white p-8 rounded-3xl shadow-xl border">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-gray-700">🕒 Récentes</h2>
@@ -84,7 +82,6 @@
                 <a href="{{ route('admin.orders.show', $order) }}"
                    class="flex justify-between items-center py-3 border-b last:border-0 hover:bg-gray-50 rounded-xl px-3 transition block">
                     <div>
-                        {{-- ✅ Nullsafe operator — user peut être supprimé --}}
                         <p class="font-semibold text-gray-800 text-sm">{{ $order->user?->name ?? 'Client supprimé' }}</p>
                         <p class="text-xs text-gray-400">{{ $order->created_at?->diffForHumans() }}</p>
                     </div>
