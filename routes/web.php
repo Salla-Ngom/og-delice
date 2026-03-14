@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminLiveController;
-
+use App\Http\Controllers\Vendeur\VendeurOrderController;
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
@@ -127,6 +127,38 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
+// ══════════════════════════════════════════════════════════
+// À AJOUTER dans routes/web.php
+// ══════════════════════════════════════════════════════════
+
+Route::middleware(['auth', 'vendeur'])
+    ->prefix('vendeur')
+    ->name('vendeur.')
+    ->group(function () {
+
+        // Interface POS (caisse)
+        Route::get('/pos', [VendeurOrderController::class, 'pos'])
+            ->name('pos');
+
+        // Enregistrer une vente (JSON)
+        Route::post('/pos', [VendeurOrderController::class, 'store'])
+            ->name('pos.store');
+
+        // Historique des ventes
+        Route::get('/orders', [VendeurOrderController::class, 'index'])
+            ->name('orders.index');
+
+        // Reçu PDF
+        Route::get('/orders/{order}/receipt', [VendeurOrderController::class, 'receipt'])
+            ->name('orders.receipt');
+    });
+
+// ══════════════════════════════════════════════════════════
+// IMPORTS À AJOUTER en haut de web.php
+// ══════════════════════════════════════════════════════════
+
 
 
 require __DIR__.'/auth.php';

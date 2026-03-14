@@ -32,10 +32,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // ✅ Redirection par rôle — vendeur → admin dashboard (même espace)
+        // ✅ Redirection par rôle
         return match(auth()->user()->role) {
-            'admin', 'vendeur' => redirect()->intended(route('admin.dashboard')),
-            default            => redirect()->intended(route('client.dashboard')),
+            'admin'   => redirect()->intended(route('admin.dashboard')),
+            'vendeur' => redirect()->intended(route('vendeur.pos')),   // ← caisse POS
+            default   => redirect()->intended(route('client.dashboard')),
         };
     }
 

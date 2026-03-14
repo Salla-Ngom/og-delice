@@ -50,7 +50,7 @@
             <a href="{{ route('cart.index') }}" class="relative hover:text-orange-500 transition text-xl" title="Mon panier">
                 🛒
                 @if($cartCount > 0)
-                    <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center rounded-full px-1 font-bold">
+                    <span class="cart-badge absolute -top-2 -right-3 bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center rounded-full px-1 font-bold">
                         {{ $cartCount }}
                     </span>
                 @endif
@@ -94,7 +94,7 @@
             <a href="{{ route('cart.index') }}" class="relative text-xl">
                 🛒
                 @if($cartCount > 0)
-                    <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">
+                    <span class="cart-badge absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">
                         {{ $cartCount }}
                     </span>
                 @endif
@@ -146,7 +146,7 @@
                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 hover:text-orange-600 transition">
                 <span>🛒</span> Panier
                 @if($cartCount > 0)
-                    <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                    <span class="cart-badge ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                         {{ $cartCount }}
                     </span>
                 @endif

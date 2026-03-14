@@ -43,7 +43,7 @@
             <tbody>
                 @forelse($orders as $order)
                     <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-4 font-semibold text-gray-600">#{{ $order->id }}</td>
+                        <td class="p-4 font-semibold text-gray-600">{{ $order->id }}</td>
                         <td class="p-4">{{ $order->user?->name ?? 'Client supprimé' }}</td>
                         <td class="p-4 font-semibold text-orange-600">{{ $order->formatted_total }}</td>
                         <td class="p-4">

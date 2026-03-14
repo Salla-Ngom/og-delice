@@ -17,19 +17,16 @@ class OrderController extends Controller
     {
         $cart = session()->get('cart', []);
 
-        // Panier vide
         if (empty($cart)) {
             return redirect()->back()->with('error', 'Votre panier est vide.');
         }
 
-        // Récupérer les produits réels depuis la DB — ne jamais faire confiance aux prix en session
         $productIds = array_keys($cart);
         $products   = Product::whereIn('id', $productIds)
             ->where('is_active', true)
             ->get()
             ->keyBy('id');
 
-        // Vérifier que tous les produits existent et sont actifs
         foreach ($productIds as $id) {
             if (!$products->has($id)) {
                 return redirect()->back()
@@ -37,49 +34,48 @@ class OrderController extends Controller
             }
         }
 
-        DB::transaction(function () use ($cart, $products) {
+        $order = DB::transaction(function () use ($cart, $products) {
 
-            // Calcul du total depuis les VRAIS prix DB (pas ceux de la session)
             $total = 0;
             foreach ($cart as $id => $item) {
-                $product = $products->get($id);
-                $total  += $product->final_price * $item['quantity'];
+                $total += $products->get($id)->final_price * $item['quantity'];
             }
 
-            // ✅ new + save() — tout est assigné AVANT l'INSERT
-            // Order::create() envoie l'INSERT immédiatement, user_id manquant = erreur MySQL
             $order              = new Order();
             $order->user_id     = auth()->id();
             $order->total_price = $total;
             $order->status      = 'en_attente';
+            $order->source      = 'online';
             $order->save();
 
-            // Créer les lignes avec snapshot des prix
             foreach ($cart as $id => $item) {
                 $product = $products->get($id);
 
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception("Stock insuffisant pour « {$product->name} ».");
+                }
+
                 OrderItem::create([
-                    'order_id'        => $order->id,
-                    'product_id'      => $id,
-                    'quantity'        => $item['quantity'],
-                    'unit_price'      => $product->price,           // snapshot prix normal
-                    'unit_price_promo'=> $product->discount_price,  // snapshot promo (null si aucune)
+                    'order_id'         => $order->id,
+                    'product_id'       => $id,
+                    'quantity'         => $item['quantity'],
+                    'unit_price'       => $product->final_price,
+                    'unit_price_promo' => $product->discount_price,
                 ]);
 
-                // Décrémenter le stock
                 $product->decrement('stock', $item['quantity']);
             }
 
-            // Notifier les admins — hors boucle de création des items
             User::where('role', 'admin')->get()
                 ->each(fn($admin) => $admin->notify(new NewOrderNotification($order)));
 
-            // Vider le panier après succès
             session()->forget('cart');
+
+            return $order;
         });
 
         return redirect()
-            ->route('client.dashboard')
-            ->with('success', 'Commande passée avec succès !');
+            ->route('client.orders.show', $order)
+            ->with('success', 'Commande passée avec succès ! Nous préparons votre commande.');
     }
 }

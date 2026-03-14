@@ -15,6 +15,7 @@ class AdminOrderController extends Controller
         $status = $request->string('status')->toString() ?: null;
 
         $orders = Order::with('user')
+            ->where('source', 'online')   // ✅ exclut les ventes POS des vendeurs
             ->byStatus($status)
             ->latest()
             ->paginate(15);
@@ -26,8 +27,6 @@ class AdminOrderController extends Controller
     {
         $order->load(['user', 'items.product']);
 
-        // ✅ AJOUT — marquer comme lue la notification liée à cette commande
-        // Quand l'admin clique sur une commande depuis la liste des notifs, read_at est rempli
         auth()->user()
             ->unreadNotifications()
             ->where('data->order_id', $order->id)
@@ -53,19 +52,17 @@ class AdminOrderController extends Controller
         return back()->with('success', 'Statut mis à jour.');
     }
 
-    // ✅ AJOUT — page notifications avec données réelles
     public function notifications()
     {
         $notifications = auth()->user()
             ->notifications()
-            ->orderByRaw('read_at IS NOT NULL') // non lues en premier
+            ->orderByRaw('read_at IS NOT NULL')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return view('admin.notifications', compact('notifications'));
     }
 
-    // ✅ AJOUT — bouton "Tout marquer comme lu"
     public function markAllRead(): RedirectResponse
     {
         auth()->user()->unreadNotifications->markAsRead();
