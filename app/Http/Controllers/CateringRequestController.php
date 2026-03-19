@@ -2,111 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use App\Models\CateringRequest;
+use App\Notifications\NewCateringRequestNotification;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
-class CartController extends Controller
+class CateringRequestController extends Controller
 {
-    public function index()
+    /**
+     * Formulaire public — accessible à tous (connecté ou non)
+     */
+    public function create(): View
     {
-        $cart = session()->get('cart', []);
-
-        // Total calculé côté serveur depuis les prix DB — pas depuis la session
-        $productIds = array_keys($cart);
-        $products   = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
-        $total = 0;
-        foreach ($cart as $id => $item) {
-            $product = $products->get($id);
-            if ($product) {
-                $total += $product->final_price * $item['quantity'];
-                // Mettre à jour le prix en session si le produit a changé de prix
-                $cart[$id]['price'] = $product->final_price;
-            }
-        }
-
-        return view('cart.index', compact('cart', 'total', 'products'));
+        $eventTypes = CateringRequest::EVENT_TYPES;
+        return view('traiteur.create', compact('eventTypes'));
     }
 
-    public function add(Request $request, int $id): JsonResponse
+    /**
+     * Enregistrer la demande
+     */
+    public function store(Request $request): RedirectResponse
     {
-        $product = Product::where('id', $id)
-            ->where('is_active', true)
-            ->where('stock', '>', 0)
-            ->firstOrFail();
-
-        $cart = session()->get('cart', []);
-
-        $currentQty = $cart[$id]['quantity'] ?? 0;
-
-        // Vérifier le stock disponible
-        if ($currentQty >= $product->stock) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Stock insuffisant.',
-            ], 422);
-        }
-
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity']++;
-        } else {
-            // On stocke uniquement l'ID en session — le prix est relu depuis la DB
-            $cart[$id] = [
-                'name'     => $product->name,
-                'price'    => $product->final_price, // prix courant au moment de l'ajout
-                'image'    => $product->image,
-                'quantity' => 1,
-            ];
-        }
-
-        session()->put('cart', $cart);
-
-        return response()->json([
-            'success'   => true,
-            'cartCount' => collect($cart)->sum('quantity'), // total des articles, pas des lignes
-            'message'   => $product->name . ' ajouté au panier.',
-        ]);
-    }
-
-    public function update(Request $request, int $id): RedirectResponse
-    {
-        $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:99'],
+        $validated = $request->validate([
+            'name'       => ['required', 'string', 'max:255'],
+            'email'      => ['required', 'email', 'max:255'],
+            'phone'      => ['nullable', 'string', 'max:20'],
+            'event_type' => ['required', 'in:' . implode(',', array_keys(CateringRequest::EVENT_TYPES))],
+            'event_date' => ['required', 'date', 'after:today'],
+            'guests'     => ['required', 'integer', 'min:10', 'max:5000'],
+            'budget'     => ['nullable', 'integer', 'min:0'],
+            'message'    => ['nullable', 'string', 'max:2000'],
+        ], [
+            'event_date.after' => 'La date de l\'événement doit être dans le futur.',
+            'guests.min'       => 'Le nombre minimum de personnes est 10.',
         ]);
 
-        $cart = session()->get('cart', []);
+        $catering = new CateringRequest();
+        $catering->fill($validated);
 
-        if (!isset($cart[$id])) {
-            return redirect()->route('cart.index')
-                ->with('error', 'Produit introuvable dans le panier.');
+        // Lier au compte si connecté
+        if (auth()->check()) {
+            $catering->user_id = auth()->id();
         }
 
-        // Vérifier le stock disponible
-        $product = Product::find($id);
-        if ($product && $request->quantity > $product->stock) {
-            return redirect()->route('cart.index')
-                ->with('error', 'Quantité demandée indisponible en stock.');
-        }
+        $catering->status = 'nouvelle';
+        $catering->save();
 
-        $cart[$id]['quantity'] = $request->quantity;
-        session()->put('cart', $cart);
+        // Notifier tous les admins
+        User::where('role', 'admin')->get()
+            ->each(fn($admin) => $admin->notify(
+                new NewCateringRequestNotification($catering)
+            ));
 
-        return redirect()->route('cart.index')
-            ->with('success', 'Panier mis à jour.');
+        return redirect()
+            ->route('traiteur.confirmation')
+            ->with('catering_ref', $catering->id);
     }
 
-    public function remove(int $id): RedirectResponse
+    /**
+     * Page de confirmation après soumission
+     */
+    public function confirmation(): View
     {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-            session()->put('cart', $cart);
-        }
-
-        return redirect()->route('cart.index')
-            ->with('success', 'Produit retiré du panier.');
+        return view('traiteur.confirmation');
     }
 }

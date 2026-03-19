@@ -55,7 +55,12 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
     }
 
     public function isVendeur(): bool
@@ -70,7 +75,7 @@ class User extends Authenticatable
 
     public function canAccessAdmin(): bool
     {
-        return $this->isAdmin() || $this->isVendeur();
+        return in_array($this->role, ['admin', 'super_admin', 'vendeur']);
     }
 
     /*
@@ -83,9 +88,10 @@ class User extends Authenticatable
     {
         return Attribute::make(
             get: fn() => match ($this->role) {
-                'admin'   => 'bg-red-100 text-red-700',
-                'vendeur' => 'bg-blue-100 text-blue-700',
-                default   => 'bg-green-100 text-green-700',
+                'super_admin' => 'bg-purple-100 text-purple-700',
+                'admin'       => 'bg-red-100 text-red-700',
+                'vendeur'     => 'bg-blue-100 text-blue-700',
+                default       => 'bg-green-100 text-green-700',
             }
         );
     }
@@ -94,9 +100,10 @@ class User extends Authenticatable
     {
         return Attribute::make(
             get: fn() => match ($this->role) {
-                'admin'   => 'Administrateur',
-                'vendeur' => 'Vendeur',
-                default   => 'Client',
+                'super_admin' => 'Super Admin',
+                'admin'       => 'Administrateur',
+                'vendeur'     => 'Vendeur',
+                default       => 'Client',
             }
         );
     }

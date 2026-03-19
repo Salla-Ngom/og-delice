@@ -16,22 +16,26 @@ use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminLiveController;
 use App\Http\Controllers\Vendeur\VendeurOrderController;
-/*
-|--------------------------------------------------------------------------
-| PUBLIC ROUTES
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\Admin\AdminCateringController;
+
+Route::get('/traiteur', [CateringRequestController::class, 'create'])
+    ->name('traiteur.create');
+
+Route::post('/traiteur', [CateringRequestController::class, 'store'])
+    ->name('traiteur.store');
+
+Route::get('/traiteur/confirmation', [CateringRequestController::class, 'confirmation'])
+    ->name('traiteur.confirmation');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/menu', [ProductController::class, 'menu'])->name('menu');
 
-// ✅ Route /dashboard — Breeze y redirige après login (email verify, password confirm…)
-// Redirige selon le rôle sans erreur RouteNotFoundException
 Route::middleware('auth')->get('/dashboard', function () {
-    return match(true) {
-        in_array(auth()->user()->role, ['admin', 'vendeur']) => redirect()->route('admin.dashboard'),
-        default => redirect()->route('client.dashboard'),
+    return match(auth()->user()->role) {
+        'admin'   => redirect()->route('admin.dashboard'),
+        'vendeur' => redirect()->route('vendeur.pos'),
+        default   => redirect()->route('client.dashboard'),
     };
 })->name('dashboard');
 
@@ -71,6 +75,16 @@ Route::middleware(['auth', 'admin'])
 
         Route::get('live/poll', [AdminLiveController::class, 'poll'])
             ->name('live.poll');
+
+        // ✅ Traiteur — dans le groupe admin
+        Route::resource('catering', AdminCateringController::class)
+            ->only(['index', 'show', 'destroy']);
+
+        Route::patch('catering/{catering}/respond', [AdminCateringController::class, 'respond'])
+            ->name('catering.respond');
+
+        Route::patch('catering/{catering}/status', [AdminCateringController::class, 'updateStatus'])
+            ->name('catering.updateStatus');
     });
 
 
@@ -129,10 +143,6 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// ══════════════════════════════════════════════════════════
-// À AJOUTER dans routes/web.php
-// ══════════════════════════════════════════════════════════
-
 Route::middleware(['auth', 'vendeur'])
     ->prefix('vendeur')
     ->name('vendeur.')
@@ -154,11 +164,6 @@ Route::middleware(['auth', 'vendeur'])
         Route::get('/orders/{order}/receipt', [VendeurOrderController::class, 'receipt'])
             ->name('orders.receipt');
     });
-
-// ══════════════════════════════════════════════════════════
-// IMPORTS À AJOUTER en haut de web.php
-// ══════════════════════════════════════════════════════════
-
 
 
 require __DIR__.'/auth.php';

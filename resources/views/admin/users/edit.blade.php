@@ -36,8 +36,12 @@
                 <label class="block mb-2 font-semibold text-sm text-gray-700">Rôle</label>
                 <select name="role"
                         class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                    <option value="vendeur" {{ old('role', $user->role) === 'vendeur' ? 'selected' : '' }}>Vendeur</option>
-                    <option value="admin"   {{ old('role', $user->role) === 'admin'   ? 'selected' : '' }}>Administrateur</option>
+                    {{-- ✅ $allowedRoles passé par le contrôleur selon le rôle du connecté --}}
+                    @foreach($allowedRoles as $val => $label)
+                        <option value="{{ $val }}" {{ old('role', $user->role) === $val ? 'selected' : '' }}>
+                            {{ $label }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 

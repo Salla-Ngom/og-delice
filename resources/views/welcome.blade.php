@@ -128,10 +128,9 @@
     <section class="py-20 bg-gray-900 text-white text-center">
         <h2 class="text-3xl font-bold mb-6">Un événement à organiser ?</h2>
         <p class="text-gray-300 mb-8">Faites confiance à notre service traiteur professionnel.</p>
-        {{-- ✅ route login au lieu de # — redirige vers dashboard après connexion --}}
-        <a href="{{ route('login') }}"
+        <a href="{{ route('traiteur.create') }}"
            class="bg-orange-500 px-8 py-4 rounded-xl font-semibold hover:bg-orange-600 transition">
-            Nous contacter
+            Demander un devis
         </a>
     </section>
 

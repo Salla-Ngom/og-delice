@@ -8,4 +8,11 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: '0.0.0.0',        // ✅ écoute sur toutes les interfaces
+        port: 5173,
+        hmr: {
+            host: '192.168.1.21', // ✅ ton IP locale — le téléphone ira chercher le JS ici
+        },
+    },
 });

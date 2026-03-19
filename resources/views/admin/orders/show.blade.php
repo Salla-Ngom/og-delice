@@ -96,6 +96,7 @@
                                 'en_attente'     => 'En attente',
                                 'en_preparation' => 'En préparation',
                                 'prete'          => 'Prête',
+                                'livree'         => 'Livrée',
                                 'annulee'        => 'Annulée',
                             } }}
                         </option>
